@@ -1,0 +1,5 @@
+# Classe filha que é um treinador comum
+
+class TreinadorComum(TreinadorPokemon):
+    def __init__(self):
+        super().__init__()
