@@ -13,22 +13,22 @@
 ## Requisitos Obrigatorios
 | Característica | Descrição |
 | :--- | :--- |
-| **Objetivo Principal** | Obter 8 insígnias diferentes dos lideres de ginasio. |
+| **Objetivo Principal** | Obter 3 insígnias diferentes dos lideres de ginasio. |
 | **Dinâmica de Movimentação** | Os lideres se movimenta, mas retorna ao seu lugar de origem periodicamente. treinadores comuns e Pokémon selvagens apenas movem-se livremente. |
-| **Limite da Equipe pokemon** | Os treinadores têm 6 Pokémon, incluindo o jogador. |
+| **Limite da Equipe pokemon** | Os treinadores podem têm 6 Pokémon, incluindo o jogador. |
 | **Escolha Inicial** | Inicialmente, o jogador escolhe 3 Pokémon distintos (ou 1 aleatório). |
 | **Sistema de Experiência** | Lógica de XP. |
-| **Sistema de Status** | Atributos: HP, AP, DP, vida, ataque e defesa respectivamente + lógica. |
-| **Nivelamento de Pokémon** | Lógica do XP pokémon + Os Pokémon evoluem. |
-| **Nivelamento de Treinador**| Lógica do XP treinador. |
+| **Sistema de Status** | Atributos: HP, AP, DP, vida, ataque e defesa respectivamente. |
+| **Nivelamento de Pokémon** | Os Pokémon evoluem. |
+| **Nivelamento de Treinador**| XP treinador. |
 | **Sistema de Ovos** | Lógica de ovo. |
-| **Batalhas e Saúde** | Lógica de luta e recuperação de hp. |
+| **Batalhas e Saúde** | Lógica de luta e recuperação de hp por caminhar. |
 | **Elementos / Tipagem** | Tipos de pokémon (fogo, água, planta…). |
-| **Centro de Cura** | Lógica do PMC, centro de recuperação dos pokémons. |
-| **Sistema de Captura** | Sistema de captura de pokémons. |
-| **Gerenciamento de Excedentes**| Sistema que escolhe qual pokemon vc fica caso pegue mais de 6 pokemon. |
-| **Condição de Game Over** | Condição de Derrota por tempo, caso ele não consiga as 8 insígnias a tempo. |
-| **Sistema de Inventário** | Sistema gerencie a posse de uma incubadora, um conjunto de 7 pokébolas e as porções de ervas medicinais encontradas. |
+| **Centro de Cura** | PMC, centro de recuperação dos pokémons. |
+| **Sistema de Captura** | Sistema de captura de pokémons, só é possivel capturar se tiver pokebolas. |
+| **Gerenciamento de Excedentes**| Sistema que escolhe qual pokemon vc fica caso pegue mais de 6 pokemon. (MECANICA NAO TESTADA)|
+| **Condição de Game Over** | Condição de Derrota por tempo, caso ele não consiga as insígnias a tempo. |
+| **Sistema de Inventário** | Sistema gerencie a posse de uma incubadora, um conjunto de 7 pokébolas e as porções de ervas medicinais encontradas. (Sistema de gerenciamento de ervas não implementado) |
 
 ## Requisitos Adicionais e Especificações do Grafo
 
@@ -60,3 +60,82 @@
 - **Universidade:** Universidade Federal do Cariri (UFCA)
 - **Professor:** Carlos Vinicius
 - **Localidade:** Juazeiro do Norte – CE, 2026
+
+## Como executar
+
+```bash
+cd pokemon_liga
+python3 main.py                        
+python3 main.py data/outro_mapa.txt     
+```
+
+Requer apenas Python 3.9+ com Tkinter (`sudo apt install python3-tk` no
+Ubuntu/Debian, caso não venha instalado). Nenhuma dependência externa
+(`pip install`) é necessária, tudo usa apenas a biblioteca padrão.
+
+Para rodar o teste de integração (sem interface):
+
+```bash
+python3 -m tests.teste_simulacao
+```
+
+## Estrutura do projeto
+
+```
+pokemon_liga/
+├── main.py                     
+├── models/
+│   ├── grafo.py                
+│   ├── especie.py               
+│   ├── pokemon.py             
+│   ├── treinador.py             
+│   ├── item.py                  
+│   ├── batalha.py               
+│   └── regiao.py               
+├── io_utils/
+│   └── carregador.py            
+├── engine/
+│   └── simulacao.py             
+├── gui/
+│   └── app.py                   
+├── data/
+│   └── mapa_regiao.txt          
+└── tests/
+    └── teste_simulacao.py       
+```
+
+
+## Formato do arquivo de região (`data/mapa_regiao.txt`)
+
+- `[REGIAO]`: nome da região e prazo de inscrição (`auto` calcula
+  automaticamente um valor entre 10x e 15x a soma dos pesos das arestas).
+- `[VERTICES]`: `id;nome;tipo;x;y` — tipos válidos: `normal`, `ginasio`,
+  `pmc`, `estadio`, `laboratorio`. `(x,y)` são coordenadas de desenho.
+- `[ARESTAS]`: `origem;destino;peso` (grafo não-direcionado).
+- `[ESPECIES]`: `id;nome;tipos;fase;xp_para_evoluir;evolui_para` — define
+  as cadeias evolutivas (no máximo 3 fases, nomes distintos por fase).
+- `[INICIAIS]`: ids de espécies (fase 1) oferecidas ao jogador.
+- `[GINASIOS]`: `vertice_id;nome_lider;id_insignia;fixo;tempo_permanencia;tipo_time`.
+- `[CONFIG]`: quantidades de treinadores NPC, pokémons selvagens, itens
+  extras, ervas, ovos e membros da Equipe Rocket a serem espalhados
+  **aleatoriamente** pelos vértices `normal`,
+  
+## Limitações
+
+- A IA dos treinadores NPC comuns é propositalmente simples (caminham
+  aleatoriamente) eles não iniciam batalhas entre si automaticamente
+  o foco é a interação principal, para manter o escopo do
+  projeto gerenciável.
+- O sistema de "ataques" é simplificado para um único tipo de ataque
+  básico (AP vs DP) por turno, entao, é gerado turnos excessivos em certos combates
+- Não há persistência (salvar/carregar progresso do jogador), cada
+  execução gera um novo estado a partir do arquivo de região (com `seed`
+  fixa, o mundo gerado é sempre o mesmo e mas o progresso do jogador não é
+  salvo ).
+
+
+## Vídeos da equipe
+
+- Wesley (Estrutura inicial de vertices e grafos e uso do Dijkstra e heap mínimo): 
+- Irlan (DFS + vértice mais distante): 
+- Jonatas (BFS + conectividade + Elementos Extras): 
