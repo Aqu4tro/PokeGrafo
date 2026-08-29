@@ -136,6 +136,6 @@ pokemon_liga/
 
 ## Vídeos da equipe
 
-- Wesley (Estrutura inicial de vertices e grafos e uso do Dijkstra e heap mínimo): 
+- Wesley (Estrutura inicial de vertices e grafos e uso do Dijkstra e heap mínimo): https://youtu.be/qnzvW3Q6SAU?is=8vk1kwHNQzoxtCA2
 - Irlan (DFS + vértice mais distante): 
 - Jonatas (BFS + conectividade + Elementos Extras): 
