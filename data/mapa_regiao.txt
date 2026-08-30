@@ -4,7 +4,7 @@
 # =====================================================================
 
 [REGIAO]
-nome = Região de Cerrado Dourado
+nome = Região do cariri juazeiro do norte
 prazo_inscricao = auto
 
 # ---------------------------------------------------------------------
@@ -15,12 +15,12 @@ prazo_inscricao = auto
 [VERTICES]
 lab;Lab. do Prof. Carvalho;laboratorio;70;340
 v1;Vila Verde;normal;250;340
-v2;Trilha do Bosque;normal;250;170
-v3;Gruta Sombria;normal;430;110
-g1;Ginásio de Pedra;ginasio;620;110
-v4;Praia Serena;normal;430;340
+v2;trilha do Bosque;normal;250;170
+v3;gruta Sombria;normal;430;110
+g1;ginásio de Pedra;ginasio;620;110
+v4;praia Serena;normal;430;340
 pmc1;Centro Pokémon;pmc;620;340
-v5;Campo Aberto;normal;620;560
+v5;campo aberto;normal;620;560
 g2;Ginásio Elétrico;ginasio;810;560
 v6;Pântano Nebuloso;normal;810;340
 g3;Ginásio Fantasma;ginasio;1000;340
@@ -32,30 +32,29 @@ estadio;Estádio da Liga;estadio;1000;560
 # Arestas: origem;destino;peso (peso = tempo/distância para percorrer)
 # ---------------------------------------------------------------------
 [ARESTAS]
-lab;v1;4
-v1;v2;3
-v1;v4;5
-v2;v3;4
-v3;g1;3
-v3;v7;6
-g1;v7;4
-v4;pmc1;3
-v4;v5;5
-pmc1;v6;3
-pmc1;v7;5
-v5;g2;4
-v5;v6;4
-v6;g3;5
-v6;v7;4
-v7;pmc2;3
-g3;pmc2;3
-g3;estadio;4
-g2;estadio;6
-pmc2;estadio;7
+lab;v1;6
+v1;v2;5
+v1;v4;7
+v2;v3;6
+v3;g1;5
+v3;v7;8
+g1;v7;6
+v4;pmc1;5
+v4;v5;7
+pmc1;v6;5
+pmc1;v7;6
+v5;g2;6
+v5;v6;6
+v6;g3;7
+v6;v7;6
+v7;pmc2;5
+g3;pmc2;5
+g3;estadio;6
+g2;estadio;8
+pmc2;estadio;9
 
 # ---------------------------------------------------------------------
 # Espécies: id;nome;tipos(separados por vírgula);fase;xp_para_evoluir;evolui_para
-# Cadeias com no máximo 3 fases, nomes distintos por fase, conforme o enunciado.
 # xp_para_evoluir é CUMULATIVO (XP total do pokémon); vazio = fase final.
 # ---------------------------------------------------------------------
 [ESPECIES]
@@ -93,7 +92,6 @@ tempestalis;Tempestális;voador;3;;
 
 # ---------------------------------------------------------------------
 # Espécies (fase 1) oferecidas ao treinador como iniciais.
-# Devem ter tipos distintos entre água, fogo e planta (regra do enunciado).
 # ---------------------------------------------------------------------
 [INICIAIS]
 aguinha
@@ -114,10 +112,10 @@ g3;Fantasma;insignia_fantasma;True;20;fantasma
 # (posições, XP, HP, AP, DP sorteados pelo programa)
 # ---------------------------------------------------------------------
 [CONFIG]
-num_treinadores_npc = 3
+num_treinadores_npc = 2
 num_pokemons_selvagens = 10
-num_itens_extras = 4
-num_ervas = 4
+num_itens_extras = 10
+num_ervas = 7
 num_ovos = 2
 num_membros_rocket = 1
 seed = 7
