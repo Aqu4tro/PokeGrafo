@@ -149,6 +149,13 @@ class AplicativoPokemonLiga:
         self.lbl_ovos = ttk.Label(f, text="", wraplength=320, justify="left")
         self.lbl_ovos.pack(anchor="w", pady=(2, 10))
 
+        self.lbl_inventario = ttk.Label(f, text="", font=("Segoe UI", 10, "bold"))
+        self.lbl_inventario.pack(anchor="w", pady=(0, 10))
+
+        self.lbl_estado_jornada = ttk.Label(
+            f, text="", font=("Segoe UI", 10, "bold"), wraplength=320)
+        self.lbl_estado_jornada.pack(anchor="w", pady=(0, 10))
+
         ttk.Label(f, text="Prazo de inscrição", font=("Segoe UI", 10, "bold")).pack(anchor="w")
         self.barra_prazo = ttk.Progressbar(f, maximum=100, value=0)
         self.barra_prazo.pack(fill="x", pady=(2, 2))
@@ -164,8 +171,8 @@ class AplicativoPokemonLiga:
                                        parent=self.root) or "Ash"
 
         especies = self.sim.especies_iniciais_disponiveis()
-        escolha = DialogoEscolhaInicial(self.root, especies).mostrar()
-        self.jogador = self.sim.criar_jogador(nome, escolha)
+        aceitar_tres = DialogoEscolhaInicial(self.root, especies).mostrar()
+        self.jogador = self.sim.criar_jogador(nome, aceitar_tres)
 
         self._atualizar_tudo()
 
@@ -207,6 +214,27 @@ class AplicativoPokemonLiga:
                 self.canvas.create_rectangle(mx - 12, my - 9, mx + 12, my + 9,
                                               fill="#ECEFF1", outline="")
                 self.canvas.create_text(mx, my, text=f"{peso:g}", font=("Segoe UI", 8), fill="#455A64")
+
+        # Entidades em trânsito são desenhadas sobre a aresta, e não contadas
+        # como presentes em qualquer uma das extremidades.
+        entidades = list(self.regiao.treinadores.values()) + list(
+            self.regiao.pokemons_selvagens.values())
+        for entidade in entidades:
+            if not entidade.em_transito:
+                continue
+            origem = grafo.obter_vertice(entidade.transito_origem)
+            destino = grafo.obter_vertice(entidade.transito_destino)
+            x1, y1 = posicao(origem)
+            x2, y2 = posicao(destino)
+            progresso = entidade.progresso_transito
+            x = x1 + (x2 - x1) * progresso
+            y = y1 + (y2 - y1) * progresso
+            cor = "#D32F2F" if entidade is self.jogador else "#6A1B9A"
+            self.canvas.create_oval(x - 6, y - 6, x + 6, y + 6,
+                                    fill=cor, outline="white", width=2)
+            self.canvas.create_text(
+                x, y - 13, text="Em trânsito", font=("Segoe UI", 7, "bold"),
+                fill=cor)
 
         # vértices
         for v in vertices:
@@ -266,7 +294,8 @@ class AplicativoPokemonLiga:
 
     def _mover_um_passo(self, destino: str, atualizar: bool = True):
         try:
-            msgs = self.sim.mover_um_passo(self.jogador, destino)
+            msgs = self.sim.mover_um_passo(
+                self.jogador, destino, seletor_excedente=self._selecionar_excedente)
             self._log(msgs)
         except ValueError as e:
             messagebox.showerror("Movimento inválido", str(e))
@@ -277,7 +306,7 @@ class AplicativoPokemonLiga:
     # Ações
     # ================================================================== #
     def _acao_avancar_mundo(self):
-        msgs = self.sim.avancar_mundo(1)
+        msgs = self.sim.avancar_mundo(1, treinador_parado=self.jogador)
         self._log(msgs or ["O mundo avançou um passo (nada de novo aconteceu)."])
         self._atualizar_tudo()
 
@@ -312,13 +341,28 @@ class AplicativoPokemonLiga:
             return
 
         disponiveis = self.jogador.pokemons_disponiveis()
-        escolha = DialogoSelecaoPokemon(self.root, "Escolha até 3 pokémons para a batalha",
-                                         disponiveis, minimo=1, maximo=3).mostrar()
+        escolha = DialogoSelecaoPokemon(self.root, "Escolha exatamente 3 pokémons para a batalha",
+                                         disponiveis, minimo=3, maximo=3).mostrar()
         if not escolha:
             return
         escolha_oponente = oponente.pokemons_disponiveis()[:3]
-        resultado = self.sim.desafiar_treinador(self.jogador, oponente, escolha, escolha_oponente)
+        aceitou = self.sim.rng.random() < 0.85
+        try:
+            resultado = self.sim.desafiar_treinador(
+                self.jogador, oponente, escolha, escolha_oponente,
+                aceitou=aceitou,
+                seletor_ataque_desafiante=self._selecionar_ataque,
+                seletor_substituto_desafiante=self._selecionar_substituto,
+                decisor_desistencia_desafiado=self._decidir_desistencia_desafiado)
+        except ValueError as erro:
+            messagebox.showwarning("Batalha inválida", str(erro))
+            self._atualizar_tudo()
+            return
         self._log(resultado.log)
+        if resultado.recusado:
+            messagebox.showinfo("Desafio recusado", f"{oponente.nome} recusou a batalha.")
+            self._atualizar_tudo()
+            return
         vencedor = getattr(resultado, "vencedor_treinador", None)
         if vencedor is self.jogador:
             messagebox.showinfo("Vitória!", f"Você venceu {oponente.nome}!")
@@ -338,8 +382,22 @@ class AplicativoPokemonLiga:
                                          disponiveis, minimo=1, maximo=1).mostrar()
         if not escolha:
             return
-        resultado = self.sim.capturar(self.jogador, escolha[0], selvagem)
+        try:
+            resultado = self.sim.capturar(
+                self.jogador, escolha[0], selvagem,
+                seletor_ataque=self._selecionar_ataque,
+                decisor_abandono=self._decidir_abandono_captura,
+                seletor_excedente=self._selecionar_excedente)
+        except ValueError as erro:
+            messagebox.showwarning("Captura inválida", str(erro))
+            self._atualizar_tudo()
+            return
         self._log(resultado.log)
+        if resultado.abandonado:
+            messagebox.showinfo("Captura abandonada",
+                                f"{selvagem.apelido} ficará escondido pelo restante da jornada.")
+            self._atualizar_tudo()
+            return
         if resultado.capturado:
             messagebox.showinfo("Capturado!", f"{selvagem.apelido} agora faz parte da sua equipe!")
         self._atualizar_tudo()
@@ -348,6 +406,58 @@ class AplicativoPokemonLiga:
         msg = self.sim.coletar_item(self.jogador, item)
         self._log([msg])
         self._atualizar_tudo()
+
+    def _selecionar_ataque(self, treinador: Treinador, atacante: Pokemon,
+                           defensor: Pokemon):
+        ataques = atacante.ataques
+        opcoes = "\n".join(
+            f"{indice + 1}. {ataque.nome} (tipo {ataque.tipo or 'neutro'})"
+            for indice, ataque in enumerate(ataques))
+        while True:
+            indice = simpledialog.askinteger(
+                "Escolha o ataque",
+                f"{atacante.apelido} contra {defensor.apelido}:\n\n{opcoes}",
+                parent=self.root, minvalue=1, maxvalue=len(ataques))
+            if indice is not None:
+                return ataques[indice - 1]
+            messagebox.showwarning("Escolha obrigatória",
+                                   "Selecione um ataque para continuar a batalha.")
+
+    def _decidir_abandono_captura(self, treinador: Treinador, turno: int,
+                                  aliado: Pokemon, selvagem: Pokemon) -> bool:
+        return DialogoDecisaoTurno(
+            self.root, "Captura em andamento",
+            f"Turno {turno}\n\n{aliado.apelido}: HP {aliado.hp}/100\n"
+            f"{selvagem.apelido}: HP {selvagem.hp}/100\n\n"
+            "Você pode fugir agora; os danos já sofridos serão preservados.",
+            "Fugir").mostrar()
+
+    def _decidir_desistencia_desafiado(self, desafiado: Treinador,
+                                       turno: int) -> bool:
+        return DialogoDecisaoTurno(
+            self.root, "Decisão do treinador desafiado",
+            f"Turno {turno}: {desafiado.nome} pode desistir da batalha.",
+            "Desistir").mostrar()
+
+    def _selecionar_substituto(self, treinador: Treinador, disponiveis: List[Pokemon]):
+        while True:
+            escolha = DialogoSelecaoPokemon(
+                self.root, "Escolha o Pokémon que entrará em campo",
+                disponiveis, minimo=1, maximo=1).mostrar()
+            if escolha:
+                return escolha[0]
+            messagebox.showwarning("Escolha obrigatória",
+                                   "Selecione o Pokémon que entrará em campo.")
+
+    def _selecionar_excedente(self, treinador: Treinador, candidatos: List[Pokemon]):
+        while True:
+            escolha = DialogoSelecaoPokemon(
+                self.root, "Equipe cheia: escolha quem será enviado ao Prof. Carvalho",
+                candidatos, minimo=1, maximo=1).mostrar()
+            if escolha:
+                return escolha[0]
+            messagebox.showwarning("Escolha obrigatória",
+                                   "É necessário escolher o excedente da equipe.")
 
     # ================================================================== #
     # Atualização dos painéis
@@ -368,6 +478,13 @@ class AplicativoPokemonLiga:
         texto = (f"Treinador: {self.jogador.nome}   |   XP: {self.jogador.xp:.0f}   |   "
                  f"Insígnias: {len(self.jogador.insignias)}/{necessarias}   |   "
                  f"Local: {self.regiao.grafo.obter_vertice(self.jogador.vertice_atual).nome}")
+        if self.jogador.em_transito:
+            destino = self.regiao.grafo.obter_vertice(
+                self.jogador.transito_destino).nome
+            texto += (f"   |   Em trânsito para {destino} "
+                      f"({self.jogador.transito_tempo_restante:g} restantes)")
+        if self.jogador.registrado_status == "fora_do_prazo":
+            texto += "   |   INAPTO PARA A LIGA"
         self.lbl_status_topo.configure(text=texto)
 
     def _atualizar_aba_equipe(self):
@@ -412,7 +529,7 @@ class AplicativoPokemonLiga:
                       foreground="#B71C1C").pack(anchor="w", pady=(0, 8))
 
         outros_treinadores = self.regiao.treinadores_em(vertice.id, excluir_id=self.jogador.id)
-        selvagens = self.regiao.pokemons_selvagens_em(vertice.id)
+        selvagens = self.regiao.pokemons_selvagens_em(vertice.id, self.jogador)
         itens = self.regiao.itens_em(vertice.id)
 
         if outros_treinadores:
@@ -512,9 +629,22 @@ class AplicativoPokemonLiga:
         else:
             texto_ovos = "(nenhum)"
         self.lbl_ovos.configure(text=texto_ovos)
+        self.lbl_inventario.configure(
+            text=f"Inventário: {self.jogador.pokebolas} Pokébolas | "
+                 f"Incubadora: {'sim' if self.jogador.tem_incubadora else 'não'}")
+        if self.jogador.registrado_status == "fora_do_prazo":
+            estado = "Estado da jornada: INAPTO — prazo de inscrição excedido."
+        elif self.jogador.em_transito:
+            estado = (f"Estado da jornada: Em trânsito para "
+                      f"{self.jogador.transito_destino}.")
+        elif self.jogador.inscrito_na_liga:
+            estado = "Estado da jornada: inscrito na Liga."
+        else:
+            estado = "Estado da jornada: apto a continuar."
+        self.lbl_estado_jornada.configure(text=estado)
 
         prazo = self.regiao.prazo_maximo_inscricao
-        usado = self.jogador.distancia_percorrida
+        usado = self.jogador.tempo_decorrido
         pct = min(100, 100 * usado / prazo) if prazo else 0
         self.barra_prazo.configure(value=pct)
         self.lbl_prazo.configure(text=f"{usado:.0f} / {prazo:.0f} unidades utilizadas")
@@ -541,21 +671,23 @@ class DialogoEscolhaInicial:
         self.top.resizable(False, False)
         self.resultado = None
 
-        ttk.Label(self.top, text="O Prof. Carvalho oferece três pokémons iniciais:",
+        ttk.Label(self.top, text="O Prof. Carvalho oferece os três Pokémon iniciais:",
                   font=("Segoe UI", 11, "bold")).pack(padx=16, pady=(16, 8))
 
-        self.var = tk.StringVar(value="")
-        for e in especies:
-            ttk.Radiobutton(self.top, text=f"{e.nome}  (tipo: {'/'.join(e.tipos)})",
-                             variable=self.var, value=e.id).pack(anchor="w", padx=24, pady=2)
-        ttk.Radiobutton(self.top, text="Nenhum -- prefiro um pokémon aleatório do laboratório",
-                         variable=self.var, value="").pack(anchor="w", padx=24, pady=(8, 12))
+        nomes = ", ".join(f"{e.nome} ({'/'.join(e.tipos)})" for e in especies)
+        ttk.Label(self.top, text=nomes, wraplength=420, justify="left").pack(
+            anchor="w", padx=24, pady=(0, 8))
+        self.var = tk.BooleanVar(value=True)
+        ttk.Radiobutton(self.top, text="Aceitar os três Pokémon",
+                        variable=self.var, value=True).pack(anchor="w", padx=24, pady=2)
+        ttk.Radiobutton(self.top, text="Recusar e receber apenas um Pokémon aleatório",
+                        variable=self.var, value=False).pack(anchor="w", padx=24, pady=(2, 12))
 
         ttk.Button(self.top, text="Confirmar", command=self._confirmar).pack(pady=(0, 16))
         self.top.protocol("WM_DELETE_WINDOW", self._confirmar)
 
     def _confirmar(self):
-        self.resultado = self.var.get() or None
+        self.resultado = bool(self.var.get())
         self.top.destroy()
 
     def mostrar(self):
@@ -594,6 +726,42 @@ class DialogoSelecaoPokemon:
                                     parent=self.top)
             return
         self.resultado = escolhidos
+        self.top.destroy()
+
+    def mostrar(self):
+        self.top.wait_window()
+        return self.resultado
+
+
+class DialogoDecisaoTurno:
+    """Decisão modal explícita usada durante batalhas e capturas."""
+
+    def __init__(self, master, titulo: str, mensagem: str, rotulo_confirmar: str):
+        self.top = tk.Toplevel(master)
+        self.top.title(titulo)
+        self.top.grab_set()
+        self.top.resizable(False, False)
+        self.resultado = False
+
+        ttk.Label(
+            self.top, text=mensagem, wraplength=380, justify="left",
+            font=("Segoe UI", 10)).pack(padx=20, pady=(18, 12))
+        botoes = ttk.Frame(self.top)
+        botoes.pack(fill="x", padx=20, pady=(0, 18))
+        ttk.Button(
+            botoes, text="Continuar", command=self._continuar).pack(
+                side="left", expand=True, fill="x", padx=(0, 4))
+        ttk.Button(
+            botoes, text=rotulo_confirmar, command=self._confirmar).pack(
+                side="left", expand=True, fill="x", padx=(4, 0))
+        self.top.protocol("WM_DELETE_WINDOW", self._continuar)
+
+    def _confirmar(self):
+        self.resultado = True
+        self.top.destroy()
+
+    def _continuar(self):
+        self.resultado = False
         self.top.destroy()
 
     def mostrar(self):

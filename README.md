@@ -1,153 +1,208 @@
-# PokeGrafo, rumo à liga Pokémon!
+# PokeGrafo - Rumo à Liga Pokémon
 
-# Rumo à Liga Pokémon
+Projeto da disciplina de Algoritmos em Grafos da Universidade Federal do
+Cariri (UFCA), desenvolvido em Python com orientação a objetos e interface
+gráfica Tkinter.
 
-### Esse projeto é uma parte avaliativa da cadeira de algoritmos em grafos ministrada por Carlos Vinícius, professor da UFCA. Abaixo estão as informações do projeto e sua arquitetura:
----
-## Tecnologias Usadas
+## Funcionalidades
 
-- **Python**
-- **Paradigma Usado:** POO
-- **IDEs:** Visual Studio Code / Pycharm
----
-## Requisitos Obrigatorios
-| Característica | Descrição |
-| :--- | :--- |
-| **Objetivo Principal** | Obter 3 insígnias diferentes dos lideres de ginasio. |
-| **Dinâmica de Movimentação** | Os lideres se movimenta, mas retorna ao seu lugar de origem periodicamente. treinadores comuns e Pokémon selvagens apenas movem-se livremente. |
-| **Limite da Equipe pokemon** | Os treinadores podem têm 6 Pokémon, incluindo o jogador. |
-| **Escolha Inicial** | Inicialmente, o jogador escolhe 3 Pokémon distintos (ou 1 aleatório). |
-| **Sistema de Experiência** | Lógica de XP. |
-| **Sistema de Status** | Atributos: HP, AP, DP, vida, ataque e defesa respectivamente. |
-| **Nivelamento de Pokémon** | Os Pokémon evoluem. |
-| **Nivelamento de Treinador**| XP treinador. |
-| **Sistema de Ovos** | Lógica de ovo. |
-| **Batalhas e Saúde** | Lógica de luta e recuperação de hp por caminhar. |
-| **Elementos / Tipagem** | Tipos de pokémon (fogo, água, planta…). |
-| **Centro de Cura** | PMC, centro de recuperação dos pokémons. |
-| **Sistema de Captura** | Sistema de captura de pokémons, só é possivel capturar se tiver pokebolas. |
-| **Gerenciamento de Excedentes**| Sistema que escolhe qual pokemon vc fica caso pegue mais de 6 pokemon. (MECANICA NAO TESTADA)|
-| **Condição de Game Over** | Condição de Derrota por tempo, caso ele não consiga as insígnias a tempo. |
-| **Sistema de Inventário** | Sistema gerencie a posse de uma incubadora, um conjunto de 7 pokébolas e as porções de ervas medicinais encontradas. (Sistema de gerenciamento de ervas não implementado) |
+- Grafo ponderado, não direcionado e carregado de arquivo texto.
+- Lista de adjacência, heap mínimo, Dijkstra, BFS e DFS implementados sem
+  bibliotecas prontas de grafos.
+- Mapa com laboratório, ginásios, Centros Médicos Pokémon (PMC), estádio e
+  vértices comuns.
+- Três Pokémon iniciais simultâneos, um de água, um de fogo e um de grama. Se
+  o jogador recusar, recebe somente um Pokémon aleatório de fase inicial.
+- Inventário inicial com incubadora e exatamente sete Pokébolas.
+- Equipe com até seis Pokémon ativos e limite total de sete considerando ovos
+  e Pokémon que aguardam a escolha de excedente.
+- Escolha manual do Pokémon enviado ao Professor Carvalho quando a equipe está
+  cheia.
+- Capturas com validação de local e estoque, consumo de uma Pokébola por
+  tentativa e opção de abandono em qualquer turno. Os danos anteriores à fuga
+  são preservados e o selvagem permanece escondido daquele treinador.
+- Ovos de espécie oculta que eclodem após exatamente 100 unidades percorridas.
+- HP, XP, AP, DP, recuperação, ervas, inconsciência, ferimento grave e
+  evolução. Cada evolução aumenta AP e DP em 30%.
+- Tratamento médico cujo temporizador só avança enquanto o treinador permanece
+  parado em um PMC.
+- Relógio do mundo sincronizado com o custo da viagem do jogador. NPCs, líderes
+  móveis, Equipe Rocket e Pokémon selvagens entram em estado de trânsito e só
+  chegam ao próximo vértice após consumir exatamente o peso da aresta.
+- Batalhas 3x3 com validações no motor: mesmo vértice, três Pokémon conscientes
+  e bloqueio em PMC e laboratório.
+- Aceitação ou recusa do desafio, desistência do treinador desafiado, escolha
+  manual de ataque e substituição do Pokémon do jogador.
+- Dano calculado estritamente por `max(0, AP efetivo - DP efetivo)`, sem poder
+  adicional nem dano mínimo artificial. Bloqueios mútuos terminam por
+  desistência técnica do desafiado, sem alterar HP.
+- Batalhas sem empate e XP concedido aos Pokémon que efetivamente venceram ou
+  perderam cada duelo.
+- Tabela de tipos disponível para consulta e Equipe Rocket como elemento extra.
+- Inscrição na Liga condicionada às insígnias e ao prazo configurado; ao
+  ultrapassar o prazo, o treinador é marcado imediatamente como inapto.
+- Interface com fuga de captura por turno, desistência do desafiado e indicação
+  visual dos estados `Em trânsito` e `Inapto`.
 
-## Requisitos Adicionais e Especificações do Grafo
+## Requisitos
 
-| Característica | Descrição |
-| :--- | :--- |
-| **Entrada de Dados** | O programa deve ler a descrição de um grafo ponderado a partir de um arquivo texto. |
-| **Estrutura do Mapa** | O grafo descreve as diferente possibilidades de caminhos a serem percorridos durante a jornada, contendo vértices, arestas e pesos nas arestas, representando o tempo necessário para percorrer tal aresta entre suas extremidades. Considere que é possível se mover em qualquer direção e passar pontos e arestas quantas vezes desejar. |
-| **Pontos de Interesse** | Considere que o treinador pokémon possui um mapa completo da região, com as distâncias entre pontos adjacentes indicadas no mapa, além das posições dos ginásios, MCP e estádio para inscrição, além do ponto inicial do centro do Professor Carvalho. |
-| **Geração de Entidades** | O arquivo também indica quantos pokémons, treinadores e itens extras existem na região. Além disso, as localizações, os pontos XP’s, HP’s, AP’s, DP’s de cada pokémon/treinador/item que já estão espalhados na região deve ser escolhida de forma aleatória. |
-| **Evoluções** | Os níveis de evoluções entre pokémons deve ser especificado no arquivo. |
-| **Cálculo do Prazo Máximo** | Também deve-se representar o prazo de tempo máximo para que se realize a inscrição no torneio (esse valor deve ser condizente com os valores dados de tempo de percurso entre cada ponto, devendo ser ao menos igual a 10 vezes a soma de todos os pesos nas arestas e no máximo igual a 15 vezes tal soma). |
-| **Regras de Movimento e Zonas Seguras**| Os treinadores pokémons e pokémons da região podem se mover livremente estando em qualquer ponto. Batalhas no MCP e laboratório do Professor Carvalho são proibidas. Considere que cada pokémon e treinador move-se um vértice por vez durante a região. |
+- Python 3.9 ou superior.
+- Tkinter para a interface gráfica.
+- Pytest 8 para a suíte automatizada.
 
-## Requisitos Opcionais (Elementos Extras)
-
-| Característica | Descrição |
-| :--- | :--- |
-| **Vantagens de Tipo** | Quais tipos tem vantagens sobre quais outros e como são representados; Implementação das batalhas utilizando as diferenças entre os tipos. |
-| **Equipe Rocket** | Implementação de uma Equipe Rocket, ou seja, uma equipe de treinadores que rouba pokémons e/ou insígnias de outros treinadores e possuem pokémons próprios. A cada derrota, a Equipe Rocket é enviada para um lugar aleatório e distante do ponto de ataque. Em caso de vitória, a mesma foge e fica invisível por um certo tempo, reaparecendo em algum lugar qualquer, posteriormente. O roubo exige vencer um duelo pokémon. |
-
-## Autores
-
-- **Jonatas Levi**
-- **Irlan barros**
-- **Wesley Geilson**
-
-## Curso
-
-- **Universidade:** Universidade Federal do Cariri (UFCA)
-- **Professor:** Carlos Vinicius
-- **Localidade:** Juazeiro do Norte – CE, 2026
-
-## Como executar
-
-### Opção 1: Python local
+No Ubuntu ou Debian, caso Tkinter não esteja instalado:
 
 ```bash
-cd /caminho/para/PokeGrafo
+sudo apt install python3-tk
+```
+
+## Instalação e execução
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd PokeGrafo
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python3 main.py
 ```
 
-Também pode usar outro mapa:
+Para carregar outro mapa:
 
 ```bash
 python3 main.py data/outro_mapa.txt
 ```
 
-### Opção 2: Docker
+### Docker
 
 ```bash
-cd /caminho/para/PokeGrafo
 docker build -t pokegrafo .
-docker run --rm -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix pokegrafo
+docker run --rm -it -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix pokegrafo
 ```
 
-Se o ambiente gráfico não estiver disponível, use a execução em modo terminal
-para validar a lógica do projeto:
+## Testes
+
+A suíte segue o padrão de descoberta do pytest e usa RNG controlado para que
+os resultados sejam determinísticos.
+
+Execute todos os testes com:
 
 ```bash
-python3 -m tests.teste_simulacao
+pytest -q
 ```
 
-Requer Python 3.9+ e Tkinter (`sudo apt install python3-tk` no
-Ubuntu/Debian, caso não venha instalado). O projeto usa apenas a biblioteca
-padrão do Python, além do `pytest` para testes.
+Para saída detalhada:
 
-## Estrutura do projeto
-
+```bash
+pytest -v
 ```
-pokemon_liga/
-├── main.py                     
-├── models/
-│   ├── grafo.py                
-│   ├── especie.py               
-│   ├── pokemon.py             
-│   ├── treinador.py             
-│   ├── item.py                  
-│   ├── batalha.py               
-│   └── regiao.py               
-├── io_utils/
-│   └── carregador.py            
+
+Para transformar qualquer aviso em falha:
+
+```bash
+pytest -q -W error
+```
+
+Os testes cobrem:
+
+- Dijkstra, BFS, DFS, conectividade, heap e tabela de tipos.
+- Três iniciais e recusa dos iniciais.
+- Estoque e consumo de Pokébolas, captura, abandono e caminhos negativos.
+- Limites de equipe, escolha de excedente e ovos.
+- Eclosão exatamente em 100 unidades e evolução com aumento de 30%.
+- Recuperação natural, ervas, inconsciência, ferimento grave, tratamento no PMC
+  e pausa do tratamento durante movimento.
+- Separação entre tempo e distância, incluindo a ausência de XP por distância
+  durante 100 turnos parado no PMC.
+- Sincronização do relógio e duração ponderada do movimento de NPCs, líderes,
+  Rocket e selvagens.
+- Pré-condições de batalha, recusa, desistência, ataques, substituição, ausência
+  de empate, fórmula exata de dano, bônus de AP/DP e XP individual por duelo.
+- Abandono no meio de uma captura com preservação dos HPs.
+- Roubo, derrota, invisibilidade e reaparecimento distante da Equipe Rocket.
+- Patrulha completa dos líderes móveis, incluindo permanência e retorno ao
+  ginásio.
+- Contenção de mapas inválidos e cálculo das fronteiras inclusivas do prazo de
+  inscrição na Liga.
+
+## Regras importantes do motor
+
+As regras de domínio são validadas em `engine/simulacao.py` e nos módulos de
+`models/`. A GUI apenas coleta decisões. Portanto, chamadas programáticas não
+podem ignorar co-localização, zonas seguras, pertencimento da equipe, estoque
+de Pokébolas ou tamanho dos times.
+
+Ataques são representados por `models/ataque.py` e Pokémon de fases superiores
+recebem opções adicionais. O repertório identifica a escolha do treinador, mas
+não acrescenta poder à fórmula obrigatória. Quando os dois Pokémon são
+matematicamente incapazes de causar dano, o motor encerra o bloqueio por uma
+desistência técnica do desafiado; nenhum HP é removido artificialmente.
+
+O método de passagem de tempo recebe separadamente tempo e distância. Assim,
+recuperação natural e repouso podem avançar enquanto o treinador está parado,
+mas XP de crescimento e incubação de ovos só avançam com distância efetivamente
+percorrida.
+
+## Formato de `data/mapa_regiao.txt`
+
+- `[REGIAO]`: nome e prazo de inscrição. `auto` usa 12 vezes a soma dos pesos,
+  dentro do intervalo obrigatório de 10 a 15 vezes.
+- `[VERTICES]`: `id;nome;tipo;x;y`. Tipos: `normal`, `ginasio`, `pmc`,
+  `estadio` e `laboratorio`.
+- `[ARESTAS]`: `origem;destino;peso`, sempre positivo.
+- `[ESPECIES]`: `id;nome;tipos;fase;xp_para_evoluir;evolui_para`.
+- `[INICIAIS]`: espécies de fase inicial oferecidas pelo professor. A
+  configuração precisa fornecer opções distintas de água, fogo e grama.
+- `[GINASIOS]`:
+  `vertice_id;nome_lider;id_insignia;fixo;tempo_permanencia;tipo_time`.
+- `[CONFIG]`: quantidades de treinadores, selvagens, itens, ervas, ovos e
+  membros da Equipe Rocket, além da seed de geração. Quantidades negativas,
+  referências inexistentes, grafo desconexo e prazo fora da faixa são
+  rejeitados pelo carregador.
+
+## Estrutura
+
+```text
+PokeGrafo/
+├── main.py
 ├── engine/
-│   └── simulacao.py             
+│   └── simulacao.py
 ├── gui/
-│   └── app.py                   
+│   └── app.py
+├── io_utils/
+│   └── carregador.py
+├── models/
+│   ├── ataque.py
+│   ├── batalha.py
+│   ├── especie.py
+│   ├── grafo.py
+│   ├── item.py
+│   ├── pokemon.py
+│   ├── regiao.py
+│   └── treinador.py
 ├── data/
-│   └── mapa_regiao.txt          
+│   └── mapa_regiao.txt
 └── tests/
-    └── teste_simulacao.py       
+    ├── conftest.py
+    ├── test_batalha.py
+    ├── test_dominio.py
+    ├── test_grafo.py
+    └── test_regressao_auditoria.py
 ```
 
+## Autores e vídeos
 
-## Formato do arquivo de região (`data/mapa_regiao.txt`)
+- Wesley Geilson - estrutura de vértices, grafos, Dijkstra e heap mínimo:
+  https://youtu.be/qnzvW3Q6SAU?is=8vk1kwHNQzoxtCA2
+- Irlan Barros - DFS e vértice mais distante: **URL ainda não fornecida**.
+- Jonatas Levi - BFS, conectividade e elementos extras:
+  https://www.youtube.com/watch?v=B9ArQKqr-G4
 
-- `[REGIAO]`: nome da região e prazo de inscrição (`auto` calcula
-  automaticamente um valor entre 10x e 15x a soma dos pesos das arestas).
-- `[VERTICES]`: `id;nome;tipo;x;y` — tipos válidos: `normal`, `ginasio`,
-  `pmc`, `estadio`, `laboratorio`. `(x,y)` são coordenadas de desenho.
-- `[ARESTAS]`: `origem;destino;peso` (grafo não-direcionado).
-- `[ESPECIES]`: `id;nome;tipos;fase;xp_para_evoluir;evolui_para` — define
-  as cadeias evolutivas (no máximo 3 fases, nomes distintos por fase).
-- `[INICIAIS]`: ids de espécies (fase 1) oferecidas ao jogador.
-- `[GINASIOS]`: `vertice_id;nome_lider;id_insignia;fixo;tempo_permanencia;tipo_time`.
-- `[CONFIG]`: quantidades de treinadores NPC, pokémons selvagens, itens
-  extras, ervas, ovos e membros da Equipe Rocket a serem espalhados
-  **aleatoriamente** pelos vértices `normal`,
-  
-## Limitações
+O link de Irlan deve substituir o aviso acima assim que a URL for fornecida.
 
-- A movimentação dos treinadores comuns pelo mapa é aleatória. Achamos melhor simplificar essa parte para focar na interação principal com os líderes, senão o projeto ia ficar gigante e não daria tempo de entregar.
-- Como o foco era usar os algoritmos de grafo (Dijkstra, DFS, BFS), o sistema de batalhas é bem direto (Ataque vs Defesa por turno). Isso pode fazer com que algumas batalhas demorem muitos turnos, mas decidimos deixar assim por enquanto.
-- Não há sistema de save. Toda vez que o jogo roda, ele gera o mundo do zero a partir do arquivo txt, mas como usamos uma seed fixa, pelo menos a geração não fica bagunçada a cada tentativa.
+## Observação
 
-
-## Vídeos da equipe
-
-- Wesley (Estrutura inicial de vertices e grafos e uso do Dijkstra e heap mínimo): https://youtu.be/qnzvW3Q6SAU?is=8vk1kwHNQzoxtCA2
-- Irlan (DFS + vértice mais distante): [Link pendente]
-- Jonatas (BFS + conectividade + Elementos Extras): https://www.youtube.com/watch?v=B9ArQKqr-G4
+O mundo é reconstruído do arquivo texto a cada execução; ainda não há sistema
+de salvamento persistente. A seed da configuração torna a geração inicial
+reproduzível.

@@ -74,8 +74,8 @@ class Grafo:
     def adicionar_aresta(self, origem: str, destino: str, peso: float):
         if origem not in self._vertices or destino not in self._vertices:
             raise KeyError("Ambos os vértices da aresta precisam existir no grafo.")
-        if peso < 0:
-            raise ValueError("Este projeto não trabalha com pesos negativos (tempo de percurso).")
+        if peso <= 0:
+            raise ValueError("O peso da aresta deve ser positivo (tempo de percurso).")
         # não-direcionado: aresta nos dois sentidos com o mesmo peso
         self._adj[origem].append((destino, peso))
         if origem != destino:
