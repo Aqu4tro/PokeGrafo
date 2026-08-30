@@ -63,21 +63,40 @@
 
 ## Como executar
 
+### Opção 1: Python local
+
 ```bash
-cd pokemon_liga
-python3 main.py                        
-python3 main.py data/outro_mapa.txt     
+cd /caminho/para/PokeGrafo
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 main.py
 ```
 
-Requer apenas Python 3.9+ com Tkinter (`sudo apt install python3-tk` no
-Ubuntu/Debian, caso não venha instalado). Nenhuma dependência externa
-(`pip install`) é necessária, tudo usa apenas a biblioteca padrão.
+Também pode usar outro mapa:
 
-Para rodar o teste de integração (sem interface):
+```bash
+python3 main.py data/outro_mapa.txt
+```
+
+### Opção 2: Docker
+
+```bash
+cd /caminho/para/PokeGrafo
+docker build -t pokegrafo .
+docker run --rm -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix pokegrafo
+```
+
+Se o ambiente gráfico não estiver disponível, use a execução em modo terminal
+para validar a lógica do projeto:
 
 ```bash
 python3 -m tests.teste_simulacao
 ```
+
+Requer Python 3.9+ e Tkinter (`sudo apt install python3-tk` no
+Ubuntu/Debian, caso não venha instalado). O projeto usa apenas a biblioteca
+padrão do Python, além do `pytest` para testes.
 
 ## Estrutura do projeto
 
@@ -122,20 +141,13 @@ pokemon_liga/
   
 ## Limitações
 
-- A IA dos treinadores NPC comuns é propositalmente simples (caminham
-  aleatoriamente) eles não iniciam batalhas entre si automaticamente
-  o foco é a interação principal, para manter o escopo do
-  projeto gerenciável.
-- O sistema de "ataques" é simplificado para um único tipo de ataque
-  básico (AP vs DP) por turno, entao, é gerado turnos excessivos em certos combates
-- Não há persistência (salvar/carregar progresso do jogador), cada
-  execução gera um novo estado a partir do arquivo de região (com `seed`
-  fixa, o mundo gerado é sempre o mesmo e mas o progresso do jogador não é
-  salvo ).
+- A movimentação dos treinadores comuns pelo mapa é aleatória. Achamos melhor simplificar essa parte para focar na interação principal com os líderes, senão o projeto ia ficar gigante e não daria tempo de entregar.
+- Como o foco era usar os algoritmos de grafo (Dijkstra, DFS, BFS), o sistema de batalhas é bem direto (Ataque vs Defesa por turno). Isso pode fazer com que algumas batalhas demorem muitos turnos, mas decidimos deixar assim por enquanto.
+- Não há sistema de save. Toda vez que o jogo roda, ele gera o mundo do zero a partir do arquivo txt, mas como usamos uma seed fixa, pelo menos a geração não fica bagunçada a cada tentativa.
 
 
 ## Vídeos da equipe
 
 - Wesley (Estrutura inicial de vertices e grafos e uso do Dijkstra e heap mínimo): https://youtu.be/qnzvW3Q6SAU?is=8vk1kwHNQzoxtCA2
-- Irlan (DFS + vértice mais distante): 
-- Jonatas (BFS + conectividade + Elementos Extras): 
+- Irlan (DFS + vértice mais distante): [Link pendente]
+- Jonatas (BFS + conectividade + Elementos Extras): https://www.youtube.com/watch?v=B9ArQKqr-G4

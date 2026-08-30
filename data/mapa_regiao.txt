@@ -1,0 +1,123 @@
+# =====================================================================
+# Rumo à Liga Pokémon -- arquivo de configuração da região
+# Formato descrito em io_utils/carregador.py
+# =====================================================================
+
+[REGIAO]
+nome = Região de Cerrado Dourado
+prazo_inscricao = auto
+
+# ---------------------------------------------------------------------
+# Vértices: id;nome;tipo;x;y
+# tipos válidos: normal | ginasio | pmc | estadio | laboratorio
+# (x,y) são coordenadas de desenho usadas pela interface gráfica
+# ---------------------------------------------------------------------
+[VERTICES]
+lab;Lab. do Prof. Carvalho;laboratorio;70;340
+v1;Vila Verde;normal;250;340
+v2;Trilha do Bosque;normal;250;170
+v3;Gruta Sombria;normal;430;110
+g1;Ginásio de Pedra;ginasio;620;110
+v4;Praia Serena;normal;430;340
+pmc1;Centro Pokémon;pmc;620;340
+v5;Campo Aberto;normal;620;560
+g2;Ginásio Elétrico;ginasio;810;560
+v6;Pântano Nebuloso;normal;810;340
+g3;Ginásio Fantasma;ginasio;1000;340
+v7;Monte Rochoso;normal;810;170
+pmc2;Posto Médico N.;pmc;1000;170
+estadio;Estádio da Liga;estadio;1000;560
+
+# ---------------------------------------------------------------------
+# Arestas: origem;destino;peso (peso = tempo/distância para percorrer)
+# ---------------------------------------------------------------------
+[ARESTAS]
+lab;v1;4
+v1;v2;3
+v1;v4;5
+v2;v3;4
+v3;g1;3
+v3;v7;6
+g1;v7;4
+v4;pmc1;3
+v4;v5;5
+pmc1;v6;3
+pmc1;v7;5
+v5;g2;4
+v5;v6;4
+v6;g3;5
+v6;v7;4
+v7;pmc2;3
+g3;pmc2;3
+g3;estadio;4
+g2;estadio;6
+pmc2;estadio;7
+
+# ---------------------------------------------------------------------
+# Espécies: id;nome;tipos(separados por vírgula);fase;xp_para_evoluir;evolui_para
+# Cadeias com no máximo 3 fases, nomes distintos por fase, conforme o enunciado.
+# xp_para_evoluir é CUMULATIVO (XP total do pokémon); vazio = fase final.
+# ---------------------------------------------------------------------
+[ESPECIES]
+aguinha;Aguinha;agua;1;1000;aguario
+aguario;Aquário;agua;2;2000;aguatita
+aguatita;Aquatitã;agua;3;;
+
+brasinha;Brasinha;fogo;1;1000;chamario
+chamario;Chamário;fogo;2;2000;infernassauro
+infernassauro;Infernassauro;fogo;3;;
+
+folhinha;Folhinha;grama;1;1000;folharbusto
+folharbusto;Folharbusto;grama;2;2000;florestarex
+florestarex;Florestarex;grama;3;;
+
+voltinho;Voltinho;eletrico;1;1000;voltrix
+voltrix;Voltrix;eletrico;2;2000;raiontrix
+raiontrix;Raiontrix;eletrico;3;;
+
+pedrinha;Pedrinha;pedra;1;1000;rochedo
+rochedo;Rochedo;pedra;2;2000;montanhossauro
+montanhossauro;Montanhossauro;pedra;3;;
+
+sombrinha;Sombrinha;fantasma;1;1000;fantasminho
+fantasminho;Fantasminho;fantasma;2;2000;espectrocruel
+espectrocruel;Espectrocruel;fantasma;3;;
+
+venenina;Venenina;venenoso;1;1000;toxinado
+toxinado;Toxinado;venenoso;2;2000;peconhatita
+peconhatita;Peçonhatitã;venenoso;3;;
+
+penugem;Penugem;voador;1;1000;aeroplumo
+aeroplumo;Aeroplumo;voador;2;2000;tempestalis
+tempestalis;Tempestális;voador;3;;
+
+# ---------------------------------------------------------------------
+# Espécies (fase 1) oferecidas ao treinador como iniciais.
+# Devem ter tipos distintos entre água, fogo e planta (regra do enunciado).
+# ---------------------------------------------------------------------
+[INICIAIS]
+aguinha
+brasinha
+folhinha
+
+# ---------------------------------------------------------------------
+# Ginásios: vertice_id;nome_do_lider;id_insignia;fixo(True/False);tempo_permanencia;tipo_time
+# tipo_time (opcional) faz o líder usar preferencialmente pokémons desse tipo
+# ---------------------------------------------------------------------
+[GINASIOS]
+g1;Rocha;insignia_pedra;True;30;pedra
+g2;Elga;insignia_eletrico;False;25;eletrico
+g3;Fantasma;insignia_fantasma;True;20;fantasma
+
+# ---------------------------------------------------------------------
+# Quantidades de entidades espalhadas aleatoriamente pela região
+# (posições, XP, HP, AP, DP sorteados pelo programa)
+# ---------------------------------------------------------------------
+[CONFIG]
+num_treinadores_npc = 3
+num_pokemons_selvagens = 10
+num_itens_extras = 4
+num_ervas = 4
+num_ovos = 2
+num_membros_rocket = 1
+seed = 7
