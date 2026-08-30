@@ -4,12 +4,21 @@ models/grafo.py
 Representação de grafo ponderado e não-direcionado e os algoritmos de grafo
 usados pela simulação.
 
-A estrutura de dados do grafo (lista de adjacência) e todos os algoritmos 
-— busca em largura (BFS), busca em profundidade (DFS), teste de conectividade, 
-e o algoritmo de Dijkstra (incluindo a fila de prioridade / heap mínimo 
-que ele usa) — são
+IMPORTANTE (Requisito do projeto): nenhuma biblioteca pronta de grafos
+(``networkx``, ``igraph`` etc.) é utilizada. A estrutura de dados do grafo
+(lista de adjacência) e todos os algoritmos — busca em largura (BFS), busca
+em profundidade (DFS), teste de conectividade, e o algoritmo de Dijkstra
+(incluindo a fila de prioridade / heap mínimo que ele usa) — são
 implementados manualmente neste arquivo, usando apenas listas, dicionários
 e tuplas nativas do Python.
+
+Cada uma das operações de grafo abaixo pode ser atribuída a um integrante
+diferente da equipe (conforme exigido no enunciado, item ix):
+    - Dijkstra / caminho mínimo           -> AlgoritmosGrafo.dijkstra
+    - Busca em largura (BFS)              -> AlgoritmosGrafo.bfs
+    - Busca em profundidade (DFS)         -> AlgoritmosGrafo.dfs
+    - Vértice mais distante / conectividade -> AlgoritmosGrafo.vertice_mais_distante /
+                                                 AlgoritmosGrafo.eh_conexo
 """
 
 from __future__ import annotations
@@ -229,7 +238,6 @@ class AlgoritmosGrafo:
 
             for vizinho, peso in grafo.vizinhos(u):
                 nova_dist = d_atual + peso
-                # print(f"testando o vizinho {vizinho} a partir de {u} com nova_dist {nova_dist}")
                 if nova_dist < dist[vizinho]:
                     dist[vizinho] = nova_dist
                     pred[vizinho] = u
@@ -281,7 +289,6 @@ class AlgoritmosGrafo:
             cabeca += 1
             for vizinho, _ in grafo.vizinhos(u):
                 if vizinho not in visitados:
-                    # TODO: se pá dá pra melhorar isso aqui não usando set pra visitados
                     visitados.add(vizinho)
                     ordem.append(vizinho)
                     fila.append(vizinho)
@@ -344,7 +351,8 @@ class AlgoritmosGrafo:
         """
         Encontra, a partir de `origem`, o vértice alcançável com a MAIOR
         distância mínima (usa Dijkstra). É usado para reposicionar a
-        Equipe Rocket bem longe após uma derrota.
+        Equipe Rocket "em um lugar aleatório e distante do ponto de
+        ataque" após uma derrota (item extra do enunciado).
         """
         dist, _ = AlgoritmosGrafo.dijkstra(grafo, origem)
         excluir = set(excluir or [])

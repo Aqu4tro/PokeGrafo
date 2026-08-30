@@ -1,13 +1,5 @@
-"""
-models/regiao.py
-=================
-Classe `Regiao`: agrega o grafo do mapa, a Pokédex (cadeias de evolução),
-os treinadores (incluindo líderes de ginásio e Equipe Rocket), os pokémons
-selvagens e os itens espalhados pelo mapa, além do prazo máximo de
-inscrição na Liga.
-
-É o "mundo" da simulação -- o motor de simulação (engine/simulacao.py) e a
-interface gráfica (gui/app.py) operam sobre um objeto `Regiao`.
+"""Representa a região (mundo) da simulação: mapa, pokédex, treinadores
+e itens. Usado pelo motor de simulação e pela interface gráfica.
 """
 
 from __future__ import annotations
@@ -79,7 +71,7 @@ class Regiao:
 
     def batalha_permitida_em(self, vertice_id: str) -> bool:
         """Batalhas são proibidas no PMC e no laboratório do Professor
-        Carvalho (Requisito 7)."""
+        Carvalho (Requisito Adicional 7)."""
         if not self.grafo.existe_vertice(vertice_id):
             return False
         tipo = self.grafo.obter_vertice(vertice_id).tipo

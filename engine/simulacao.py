@@ -1,22 +1,8 @@
-"""
-engine/simulacao.py
-====================
-Motor da simulação: liga o `Regiao` (mundo), o `Grafo`/`AlgoritmosGrafo`
-(movimentação e caminhos) e o `SistemaBatalha` (combates), oferecendo uma
-API de alto nível usada pela interface gráfica (gui/app.py).
+"""Motor da simulação.
 
-Responsabilidades:
-    * Criar o treinador jogador e dar seus pokémons iniciais.
-    * Mover treinadores um vértice por vez,
-      usando o algoritmo de Dijkstra (models/grafo.py) para calcular
-      rotas quando o jogador escolhe um destino não-adjacente.
-    * Avançar o "mundo" a cada passo: locomoção de NPCs, patrulha dos
-      líderes de ginásio (retornando ao ginásio via caminho mínimo),
-      decaimento da invisibilidade da Equipe Rocket, incubação de ovos.
-    * Orquestrar batalhas (treinador x treinador, captura de selvagens,
-      batalhas de ginásio, roubo da Equipe Rocket), delegando o cálculo
-      de dano ao `SistemaBatalha`.
-    * Verificar a elegibilidade e o prazo para inscrição na Liga.
+Integra a `Regiao`, o `Grafo`/`AlgoritmosGrafo` e o `SistemaBatalha`
+e oferece uma API usada pela interface gráfica para: criar o jogador,
+mover treinadores, avançar o mundo e resolver batalhas.
 """
 
 from __future__ import annotations
@@ -80,7 +66,7 @@ class Simulacao:
         return candidatas or [e for e in pokedex.todas() if e.fase == 1]
 
     # ------------------------------------------------------------------ #
-    # Lógica de movimentação (um vértice por vez)
+    # Movimentação (Requisito Adicional 2 e 7: um vértice por vez)
     # ------------------------------------------------------------------ #
     def vizinhos_de(self, treinador: Treinador) -> List[Tuple[str, float]]:
         return self.regiao.grafo.vizinhos(treinador.vertice_atual)
@@ -91,7 +77,8 @@ class Simulacao:
         return AlgoritmosGrafo.caminho_minimo(self.regiao.grafo, origem, destino)
 
     def mover_um_passo(self, treinador: Treinador, vertice_destino: str) -> List[str]:
-        """Move um treinador para um vértice VIZINHO (um passo)."""
+        """Move um treinador para um vértice VIZINHO (um passo), conforme a
+        regra de que o movimento ocorre um vértice por vez."""
         vizinhos = dict(self.regiao.grafo.vizinhos(treinador.vertice_atual))
         if vertice_destino not in vizinhos:
             raise ValueError(f"{vertice_destino} não é adjacente a {treinador.vertice_atual}.")
@@ -163,7 +150,6 @@ class Simulacao:
                 self.regiao.grafo, lider.vertice_atual, lider.vertice_ginasio)
             if len(caminho) >= 2:
                 proximo = caminho[1]
-                # ver se tem um jeito melhor de pegar o peso do que criar um dict toda vez
                 peso = dict(self.regiao.grafo.vizinhos(lider.vertice_atual))[proximo]
                 lider.mover_para(proximo, peso, self.rng)
                 if lider.esta_no_ginasio():
@@ -349,7 +335,7 @@ class Simulacao:
         return "Item desconhecido."
 
     # ------------------------------------------------------------------ #
-    # Inscrição na Liga
+    # Inscrição na Liga -- Requisito Adicional 6
     # ------------------------------------------------------------------ #
     def registrar_na_liga(self, treinador: Treinador) -> str:
         vertice = self.regiao.grafo.obter_vertice(treinador.vertice_atual)

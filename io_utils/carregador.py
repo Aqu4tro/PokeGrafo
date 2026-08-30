@@ -1,50 +1,8 @@
-"""
-io_utils/carregador.py
-=======================
-Lê a descrição textual da região (grafo ponderado + espécies + ginásios +
-quantidades de pokémons/treinadores/itens) a partir de um arquivo texto e
-constrói um objeto `Regiao` pronto para a simulação.
+"""Leitor do arquivo de região.
 
-Formato do arquivo (texto simples, dividido em seções `[NOME_DA_SECAO]`;
-linhas em branco e iniciadas com `#` são ignoradas; campos separados por
-`;`) -- ver `data/mapa_regiao.txt` para um exemplo completo comentado:
-
-    [REGIAO]
-    nome = Regiao de Cerrado
-    prazo_inscricao = auto        # ou um número; "auto" calcula automaticamente
-
-    [VERTICES]
-    # id;nome;tipo;x;y
-    lab;Laboratorio;laboratorio;60;320
-
-    [ARESTAS]
-    # origem;destino;peso
-    lab;v1;5
-
-    [ESPECIES]
-    # id;nome;tipos(separados por vírgula);fase;xp_para_evoluir;evolui_para
-    agua1;Aquario;agua;1;1000;agua2
-
-    [INICIAIS]
-    # ids de espécies (fase 1) oferecidas como pokémon inicial
-    agua1
-
-    [GINASIOS]
-    # vertice_id;nome_do_lider;id_insignia;fixo(True/False);tempo_permanencia
-    g1;Brock;insignia_pedra;True;30
-
-    [CONFIG]
-    # quantidades de entidades a serem espalhadas aleatoriamente pela região
-    num_treinadores_npc = 3
-    num_pokemons_selvagens = 10
-    num_itens_extras = 4
-    num_ervas = 4
-    num_ovos = 2
-    num_membros_rocket = 1
-    seed = 42
-
-Este módulo não usa nenhuma biblioteca de grafos -- ele apenas povoa a
-estrutura `Grafo` (models/grafo.py), que é implementada manualmente.
+Interpreta o mapa/espécies/ginásios/configurações do arquivo de texto e
+cria um objeto `Regiao` pronto para a simulação. Veja `data/mapa_regiao.txt`
+para um exemplo do formato aceito.
 """
 
 from __future__ import annotations

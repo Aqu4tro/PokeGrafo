@@ -1,34 +1,8 @@
-"""
-models/pokemon.py
-==================
-Classe `Pokemon`: estado individual de um pokémon (HP, XP, AP, DP, status,
-tipos, fase de evolução) e as regras de crescimento/evolução descritas no
-documento de requisitos.
+"""Representa um pokémon: estado (HP, XP, status) e comportamento.
 
-Decisões de projeto (documentadas também no README):
-
-* AP e DP são valores DERIVADOS (calculados sob demanda), não contadores
-  soltos, para respeitar ao pé da letra a regra:
-      "os valores totais de AP's e DP's devem corresponder aos seus
-       valores iniciais acrescidos de 10% de seus XP's e de pontos
-       ganhos em batalhas".
-  Ou seja: ap_atual = ap_inicial + 0.10 * xp + bonus_batalha_ap
-  onde `bonus_batalha_ap` é incrementado em 1 sempre que este pokémon
-  vence um oponente com XP maior ou igual ao seu (regra separada do
-  enunciado). O mesmo vale para DP.
-
-* Evolução ("acrescido de 30% em relação à forma anterior"): como XP não
-  é reiniciado ao evoluir (ele é usado tanto para decidir a evolução
-  quanto para o cálculo de AP/DP acima), o campo `ap_inicial` é
-  recalibrado no momento da evolução para que a fórmula acima já resulte
-  imediatamente em +30% sobre o valor total anterior, e continue
-  crescendo corretamente a partir dali.
-
-* XP não é reiniciado a cada evolução (o total de XP acumulado na vida do
-  pokémon é usado nas comparações de batalha). Cada fase, porém, define
-  seu próprio limiar cumulativo de XP para evoluir (ex.: fase 1 evolui
-  aos 1000 XP, fase 2 aos 2000 XP), evitando duas evoluções instantâneas
-  seguidas caso o XP não fosse resetado.
+AP e DP são calculados a partir de valores iniciais, mais 10% do XP e
+eventuais bônus de batalha; evolução e regras relacionadas seguem o
+enunciado do projeto.
 """
 
 from __future__ import annotations
