@@ -10,6 +10,7 @@ import random
 from typing import Optional, List
 
 from models.especie import Especie, Pokedex
+from models.ataque import ataques_para
 
 
 class StatusPokemon:
@@ -52,6 +53,11 @@ class Pokemon:
 
         self.vertice_atual: Optional[str] = None
         self.treinador_id: Optional[int] = None  # None = pokémon selvagem
+        self.transito_origem: Optional[str] = None
+        self.transito_destino: Optional[str] = None
+        self.transito_tempo_total: float = 0.0
+        self.transito_tempo_restante: float = 0.0
+        self._recalcular_status(rng)
 
     # ------------------------------------------------------------------ #
     # Propriedades derivadas
@@ -76,12 +82,59 @@ class Pokemon:
     def fase(self) -> int:
         return self.especie.fase
 
+    @property
+    def ataques(self):
+        """Ataques conhecidos na fase atual, sempre escolhidos explicitamente."""
+        return ataques_para(self.tipos, self.fase)
+
     def esta_disponivel(self) -> bool:
         """Pode ser escolhido para uma batalha?"""
         return self.status == StatusPokemon.CONSCIENTE
 
     def esta_selvagem(self) -> bool:
         return self.treinador_id is None
+
+    @property
+    def em_transito(self) -> bool:
+        return self.transito_destino is not None
+
+    @property
+    def progresso_transito(self) -> float:
+        if not self.em_transito or self.transito_tempo_total <= 0:
+            return 0.0
+        consumido = self.transito_tempo_total - self.transito_tempo_restante
+        return max(0.0, min(1.0, consumido / self.transito_tempo_total))
+
+    def iniciar_transito(self, destino: str, peso_aresta: float):
+        """Inicia uma aresta sem alterar o vértice ocupado pelo Pokémon."""
+        if self.em_transito:
+            raise ValueError(f"{self.apelido} já está em trânsito.")
+        if peso_aresta <= 0:
+            raise ValueError("O tempo de uma aresta deve ser positivo.")
+        self.transito_origem = self.vertice_atual
+        self.transito_destino = destino
+        self.transito_tempo_total = float(peso_aresta)
+        self.transito_tempo_restante = float(peso_aresta)
+
+    def avancar_transito(self, unidades: float,
+                         rng: Optional[random.Random] = None) -> bool:
+        """Consome tempo da aresta e retorna ``True`` apenas na chegada."""
+        if not self.em_transito or unidades <= 0:
+            return False
+        consumido = min(float(unidades), self.transito_tempo_restante)
+        self.transito_tempo_restante -= consumido
+        self.tick(consumido, rng, distancia_percorrida=consumido)
+        if self.transito_tempo_restante > 0:
+            return False
+        self.vertice_atual = self.transito_destino
+        self.cancelar_transito()
+        return True
+
+    def cancelar_transito(self):
+        self.transito_origem = None
+        self.transito_destino = None
+        self.transito_tempo_total = 0.0
+        self.transito_tempo_restante = 0.0
 
     # ------------------------------------------------------------------ #
     # Dano / status
@@ -90,7 +143,7 @@ class Pokemon:
         rng = rng or random
         if dano <= 0:
             return
-        self.hp = max(0, min(100, self.hp - int(round(dano))))
+        self.hp = max(1, min(100, self.hp - int(round(dano))))
         self._recalcular_status(rng)
 
     def _recalcular_status(self, rng: random.Random):
@@ -126,9 +179,16 @@ class Pokemon:
     # ------------------------------------------------------------------ #
     # Passagem de tempo (chamado a cada passo de simulação / movimento)
     # ------------------------------------------------------------------ #
-    def tick(self, unidades_percorridas: float, rng: Optional[random.Random] = None):
+    def tick(self, unidades_tempo: float, rng: Optional[random.Random] = None,
+             em_tratamento_estacionario: bool = False,
+             distancia_percorrida: float = 0.0):
+        """Avança saúde pelo tempo e XP somente pela distância efetiva.
+
+        Tempo parado continua resolvendo inconsciência e regeneração natural,
+        mas nunca alimenta o acumulador de XP por distância.
+        """
         rng = rng or random
-        if unidades_percorridas <= 0:
+        if unidades_tempo <= 0:
             return
 
         if self.status == StatusPokemon.MUITO_MACHUCADO:
@@ -136,7 +196,11 @@ class Pokemon:
             return
 
         if self.status == StatusPokemon.NO_PMC:
-            self._timer_pmc -= unidades_percorridas
+            # O tratamento só progride enquanto o treinador permanece parado
+            # no PMC. Caminhar pausa o relógio médico.
+            if not em_tratamento_estacionario:
+                return
+            self._timer_pmc -= unidades_tempo
             if self._timer_pmc <= 0:
                 self.hp = 100
                 self.status = StatusPokemon.CONSCIENTE
@@ -144,8 +208,8 @@ class Pokemon:
             return
 
         if self.status == StatusPokemon.INCONSCIENTE:
-            self._timer_inconsciente -= unidades_percorridas
-            self._regenerar_hp(unidades_percorridas)
+            self._timer_inconsciente -= unidades_tempo
+            self._regenerar_hp(unidades_tempo)
             if self._timer_inconsciente <= 0:
                 # ao fim do período de recuperação, o pokémon acorda consciente
                 self.hp = max(self.hp, 20)
@@ -154,8 +218,8 @@ class Pokemon:
             return
 
         # CONSCIENTE: regeneração natural de HP + ganho de XP por distância
-        self._regenerar_hp(unidades_percorridas)
-        self.ganhar_xp_por_distancia(unidades_percorridas, rng)
+        self._regenerar_hp(unidades_tempo)
+        self.ganhar_xp_por_distancia(distancia_percorrida, rng)
 
     def _regenerar_hp(self, unidades: float):
         if self.hp >= 100:

@@ -14,12 +14,14 @@ from models.item import Item
 
 class Regiao:
     def __init__(self, nome: str, grafo: Grafo, pokedex: Pokedex,
-                 vertice_laboratorio: str, prazo_maximo_inscricao: float):
+                 vertice_laboratorio: str, prazo_maximo_inscricao: float,
+                 especies_iniciais=None):
         self.nome = nome
         self.grafo = grafo
         self.pokedex = pokedex
         self.vertice_laboratorio = vertice_laboratorio
         self.prazo_maximo_inscricao = prazo_maximo_inscricao
+        self.especies_iniciais = list(especies_iniciais or [])
 
         self.treinadores: Dict[int, Treinador] = {}
         self.pokemons_selvagens: Dict[int, Pokemon] = {}
@@ -81,9 +83,12 @@ class Regiao:
     # O que está presente em um vértice (usado pela GUI para montar as
     # opções de ação disponíveis para o jogador)
     # ------------------------------------------------------------------ #
-    def pokemons_selvagens_em(self, vertice_id: str) -> List[Pokemon]:
+    def pokemons_selvagens_em(self, vertice_id: str,
+                              treinador: Optional[Treinador] = None) -> List[Pokemon]:
         return [p for p in self.pokemons_selvagens.values()
-                if p.vertice_atual == vertice_id]
+                if p.vertice_atual == vertice_id
+                and not p.em_transito
+                and (treinador is None or p.id not in treinador.selvagens_ocultos)]
 
     def itens_em(self, vertice_id: str) -> List[Item]:
         return [i for i in self.itens.values()
@@ -92,6 +97,7 @@ class Regiao:
     def treinadores_em(self, vertice_id: str, excluir_id: Optional[int] = None) -> List[Treinador]:
         return [t for t in self.treinadores.values()
                 if t.vertice_atual == vertice_id and t.id != excluir_id
+                and not t.em_transito
                 and not (isinstance(t, MembroEquipeRocket) and t.invisivel)]
 
     def remover_pokemon_selvagem(self, pokemon_id: int):
