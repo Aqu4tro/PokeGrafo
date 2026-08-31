@@ -195,7 +195,8 @@ PokeGrafo/
 
 - Wesley Geilson - estrutura de vértices, grafos, Dijkstra e heap mínimo:
   https://youtu.be/qnzvW3Q6SAU?is=8vk1kwHNQzoxtCA2
-- Irlan Barros - DFS e vértice mais distante: **URL ainda não fornecida**.
+- Irlan Barros - DFS e vértice mais distante: 
+https://www.youtube.com/watch?v=PvxYY1gFYwc.
 - Jonatas Levi - BFS, conectividade e elementos extras:
   https://www.youtube.com/watch?v=B9ArQKqr-G4
 
