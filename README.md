@@ -59,7 +59,7 @@ sudo apt install python3-tk
 ## Instalação e execução
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
+git clone https://github.com/Aqu4tro/PokeGrafo
 cd PokeGrafo
 python3 -m venv .venv
 source .venv/bin/activate
